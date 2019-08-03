@@ -31,6 +31,9 @@ public class Song implements Serializable {
     }
 
     public String getQueryString() {
-        return name + " " + artists.get(0);
+        String cleanName = name.replaceAll("&", "and");
+        String cleanArtist = artists.get(0).replaceAll("&", "and");
+
+        return cleanName + " " + cleanArtist;
     }
 }
