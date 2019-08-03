@@ -1,0 +1,9 @@
+how to handle potentially irrelevant yt results:
+
+check whether yt vid title contains song name (minus features)
+if yes: proceed normally
+if no: prompt user with best 5 results and let them choose which one to download
+
+other: save files with songnames from spotify, not youtube titles (can i even do that?)
+-answer: no, but i can store the songnames processed and then rename them after going by
+time added and list index
