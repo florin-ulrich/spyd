@@ -10,7 +10,7 @@ import okhttp3.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class YoutubeSongSearch {
+public class YoutubeAPIClient {
 
     private List<String> links;
     private List<Song> songs;
@@ -20,7 +20,7 @@ public class YoutubeSongSearch {
 
     //https://www.googleapis.com/youtube/v3/search?part=snippet&q=nicki%20minaj&key=[YOUR_API_KEY]
 
-    public YoutubeSongSearch(List<Song> songs, OkHttpClient client) {
+    public YoutubeAPIClient(List<Song> songs, OkHttpClient client) {
         this.songs = songs;
         this.client = client;
         links = new ArrayList<>();
@@ -50,7 +50,6 @@ public class YoutubeSongSearch {
         progressListeners.forEach(e -> e.updateCurrentItem("looking for " + s.getQueryString()));
         callAPIAndGetBody(s.getQueryString());
         JsonParser parser = new JsonParser();
-        System.out.println(searchResultResponseBody);
         JsonArray results = parser.parse(searchResultResponseBody).getAsJsonObject().get("items").getAsJsonArray();
         List<SearchResult> firstFive = SearchResult.getFirstFive(results, s);
         if (!foundMatch(firstFive)) {
@@ -126,8 +125,8 @@ public class YoutubeSongSearch {
 
     public static void main(String[] args) throws Exception {
         OkHttpClient client = new OkHttpClient();
-        List<Song> songs = new SpotifyPlayListRequest(client, "1NiNbhreT71fKfJudjuKaP").getSongList();
-        YoutubeSongSearch ytss = new YoutubeSongSearch(songs, client);
+        List<Song> songs = new SpotifyAPIClient(client, "1NiNbhreT71fKfJudjuKaP").getSongList();
+        YoutubeAPIClient ytss = new YoutubeAPIClient(songs, client);
         ytss.getLinks().forEach(System.out::println);
     }
 
@@ -169,20 +168,12 @@ public class YoutubeSongSearch {
         }
 
         private String details() {
-            return title + " (" + YoutubeSongSearch.getYTLinkFromID(id) + ")";
+            return title + " (" + YoutubeAPIClient.getYTLinkFromID(id) + ")";
         }
 
         @Override
         public String toString() {
             return title;
         }
-    }
-
-    private class EditableView {
-
-    }
-
-    private void showEditableView() {
-
     }
 }

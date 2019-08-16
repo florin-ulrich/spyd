@@ -49,7 +49,7 @@ public class ytmp3ccConverter implements YTMP3Converter {
         WebElement element = driver.findElement(By.name("video"));
         element.sendKeys(link);
         element.submit();
-        WebElement downloadLink = (new WebDriverWait(driver, 20))
+        WebElement downloadLink = (new WebDriverWait(driver, 120))
                 .until(ExpectedConditions.presenceOfElementLocated(By.linkText("Download")));
         downloadLink.click();
         progressListeners.forEach(e -> e.updateProgress("downloaded " + link));

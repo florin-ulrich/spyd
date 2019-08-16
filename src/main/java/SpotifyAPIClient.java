@@ -9,10 +9,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-// parses song names from the html returned by spotify playlist pages
-// succeeded by implementation that instead uses spotifys web api
-
-public class SpotifyPlayListRequest {
+public class SpotifyAPIClient {
 
     private String currentResponseBody;
     private String accessToken;
@@ -21,7 +18,7 @@ public class SpotifyPlayListRequest {
     private String playListID;
     private List<spydGUI.ProgressListener> progressListeners;
 
-    public SpotifyPlayListRequest(OkHttpClient client, String playListID) {
+    public SpotifyAPIClient(OkHttpClient client, String playListID) {
         this.client = client;
         songs = new ArrayList<>();
         this.playListID = playListID;
@@ -33,14 +30,14 @@ public class SpotifyPlayListRequest {
         progressListeners.add(progressListener);
     }
 
-    public void executeRequest() throws Exception{
+    public void executeRequest() throws Exception {
         progressListeners.forEach(e -> e.updateProgress("starting Spotify request . . . . . ."));
         accessToken = getToken();
         progressListeners.forEach(e -> e.updateProgress("token received"));
         getPlayList();
     }
 
-    private String getToken() throws Exception{
+    private String getToken() throws Exception {
         progressListeners.forEach(e -> e.updateCurrentItem("token"));
         progressListeners.forEach(e -> e.updateProgress("getting token"));
         RequestBody rb = new FormBody.Builder().add("grant_type", "client_credentials").build();
@@ -56,7 +53,7 @@ public class SpotifyPlayListRequest {
         return parser.parse(responseText).getAsJsonObject().get("access_token").getAsString();
     }
 
-    private void getPlayList() throws Exception{
+    private void getPlayList() throws Exception {
         progressListeners.forEach(e -> e.updateCurrentItem("getting playlist tracks"));
         progressListeners.forEach(e -> e.updateProgress("making first api request"));
         callAPIAndGetBody("https://api.spotify.com/v1/playlists/" + playListID + "/tracks");
@@ -65,7 +62,7 @@ public class SpotifyPlayListRequest {
         progressListeners.forEach(e -> e.updateProgress("finished requests"));
     }
 
-    private void callAPIAndGetBody(String url) throws Exception{
+    private void callAPIAndGetBody(String url) throws Exception {
         Request playlist = new Request.Builder()
                 .url(url)
                 .addHeader("Authorization", "Bearer " + accessToken).build();
@@ -74,9 +71,9 @@ public class SpotifyPlayListRequest {
         currentResponseBody = response.body().string();
     }
 
-    private void getRemainingSongs() throws Exception{
+    private void getRemainingSongs() throws Exception {
         String next = parseNextURL();
-        while(!next.equals("null")) {
+        while (!next.equals("null")) {
             progressListeners.forEach(e -> e.updateProgress("getting more songs"));
             callAPIAndGetBody(next);
             parseSongsFromResponse();
@@ -85,7 +82,7 @@ public class SpotifyPlayListRequest {
         serializeSongs();
     }
 
-    private void serializeSongs() throws Exception{
+    private void serializeSongs() throws Exception {
         FileOutputStream fileOut = new FileOutputStream("C:\\Users\\flori\\OneDrive\\code\\Java\\spyd\\playlists\\" + playListID + ".ser");
         ObjectOutputStream out = new ObjectOutputStream(fileOut);
         out.writeObject(songs);
@@ -98,10 +95,6 @@ public class SpotifyPlayListRequest {
         JsonElement jo = parser.parse(currentResponseBody).getAsJsonObject().get("next");
         if (jo.isJsonNull()) return "null";
         else return jo.getAsString();
-    }
-
-    public SpotifyPlayListRequest(String responseBody) {
-        this.currentResponseBody = responseBody;
     }
 
     public List<Song> getSongList() {
@@ -129,8 +122,7 @@ public class SpotifyPlayListRequest {
 
     public static void main(String[] args) throws Exception {
         OkHttpClient client = new OkHttpClient();
-        SpotifyPlayListRequest splr = new SpotifyPlayListRequest(client, "3bKdSIKRdubNVTHn4uJ4Ge");
+        SpotifyAPIClient splr = new SpotifyAPIClient(client, "3bKdSIKRdubNVTHn4uJ4Ge");
         splr.getSongList().forEach(e -> System.out.println(e.getQueryString()));
-        Test.main(new String[]{});
     }
 }

@@ -100,13 +100,13 @@ public class spydGUI extends Application {
         try {
             OkHttpClient client = new OkHttpClient();
 
-            SpotifyPlayListRequest splr = new SpotifyPlayListRequest(client, playListID);
+            SpotifyAPIClient splr = new SpotifyAPIClient(client, playListID);
             ProgressListener pl = new ProgressListener();
             splr.attachProgressListener(pl);
             splr.executeRequest();
             List<Song> songs = splr.getSongList();
 
-            YoutubeSongSearch yss = new YoutubeSongSearch(songs, client);
+            YoutubeAPIClient yss = new YoutubeAPIClient(songs, client);
             yss.attachProgressListener(pl);
             yss.executeSearch();
             List<String> links = yss.getLinks();
