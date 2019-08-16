@@ -16,6 +16,14 @@ public class SongMapping {
     // JsonArray results = parser.parse(searchResultResponseBody).getAsJsonObject().get("items").getAsJsonArray();
     // List<SearchResult> firstFive = SearchResult.getFirstFive(results, s);
 
+    public static List<SongMapping> mapSearchResultsToSongs(HashMap<Song, String> responses) {
+        List<SongMapping> list = new ArrayList<>();
+        for (Map.Entry<Song, String> entry : responses.entrySet()) {
+            list.add(mapFromResponse(entry.getKey(), entry.getValue()));
+        }
+        return list;
+    }
+
     private static class SearchResult {
         String link;
         String title;
@@ -32,13 +40,7 @@ public class SongMapping {
         }
     }
 
-    public static List<SongMapping> mapSearchResultsToSongs(HashMap<Song, String> responses) {
-        List<SongMapping> list = new ArrayList<>();
-        for (Map.Entry<Song, String> entry : responses.entrySet()) {
-            list.add(mapFromResponse(entry.getKey(), entry.getValue()));
-        }
-        return list;
-    }
+
 
     private static SongMapping mapFromResponse(Song s, String response) {
         SongMapping srm = new SongMapping();
@@ -52,7 +54,7 @@ public class SongMapping {
         JsonParser parser = new JsonParser();
         JsonArray results = parser.parse(response).getAsJsonObject().get("items").getAsJsonArray();
         List<SearchResult> list = new ArrayList<>();
-        for (int i = 0; i < results.size() && list.size() < 5; i++) {
+        for (int i = 0; i < results.size(); i++) {
             JsonObject result = results.get(i).getAsJsonObject();
             SearchResult sr = new SearchResult();
             sr.link = "https://www.youtube.com/watch?v="
