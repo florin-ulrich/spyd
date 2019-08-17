@@ -1,5 +1,4 @@
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -13,16 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ytmp3ccConverter implements YTMP3Converter {
-
-    private List<spydGUI.ProgressListener> progressListeners;
-
-    public void attachProgressListener(spydGUI.ProgressListener progressListener) {
-        progressListeners.add(progressListener);
-    }
-
-    public ytmp3ccConverter() {
-        progressListeners = new ArrayList<>();
-    }
 
     @Override
     public void downloadLinksToMp3(List<String> links, String downloadPath) {
@@ -44,7 +33,6 @@ public class ytmp3ccConverter implements YTMP3Converter {
     }
 
     private void downloadFromLink(String link, WebDriver driver) {
-        progressListeners.forEach(e -> e.updateProgress("downloading " + link));
         driver.get("https://ytmp3.cc/");
         WebElement element = driver.findElement(By.name("video"));
         element.sendKeys(link);
@@ -52,7 +40,6 @@ public class ytmp3ccConverter implements YTMP3Converter {
         WebElement downloadLink = (new WebDriverWait(driver, 120))
                 .until(ExpectedConditions.presenceOfElementLocated(By.linkText("Download")));
         downloadLink.click();
-        progressListeners.forEach(e -> e.updateProgress("downloaded " + link));
     }
 
     private static WebElement waitForElement(By by, WebDriver driver) {

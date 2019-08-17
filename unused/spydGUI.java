@@ -82,42 +82,12 @@ public class spydGUI extends Application {
         }
     }
 
-    public class ProgressListener {
-        public void updateProgress(String s) {
-            pb.content.add(s);
-            pb.ta.setText(pb.content.toString());
-        }
-        public void updateCurrentItem(String s) {
-            currentItemTF.setText(s);
-        }
-    }
-
     private Scene getGUI() {
         return new Scene(vb);
     }
 
     private void convertPlaylist(String playListID) {
-        try {
-            OkHttpClient client = new OkHttpClient();
 
-            SpotifyAPIClient splr = new SpotifyAPIClient(client, playListID);
-            ProgressListener pl = new ProgressListener();
-            splr.attachProgressListener(pl);
-            splr.executeRequest();
-            List<Song> songs = splr.getSongList();
-
-            YoutubeAPIClient yss = new YoutubeAPIClient(songs, client);
-            yss.attachProgressListener(pl);
-            yss.executeSearch();
-            List<String> links = yss.getLinks();
-            YTMP3Converter converter = new ytmp3ccConverter();
-            converter.attachProgressListener(pl);
-            converter.downloadLinksToMp3(links, "D:\\temporary_quote_on_quote\\selenium_dl");
-            convert.setDisable(false);
-        } catch (Exception e){
-            exceptionPopUp(e);
-            e.printStackTrace();
-        }
     }
 
     private static void exceptionPopUp(Exception e) {

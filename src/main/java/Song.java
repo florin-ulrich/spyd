@@ -6,10 +6,12 @@ public class Song implements Serializable {
 
     private List<String> artists;
     private String name;
+    private int duration;
 
-    public Song(List<String> artists, String name) {
+    public Song(List<String> artists, String name, int duration) {
         this.artists = artists;
         this.name = name;
+        this.duration = duration;
     }
 
     public List<String> getArtists() {
@@ -35,5 +37,14 @@ public class Song implements Serializable {
         String cleanArtist = artists.get(0).replaceAll("&", "and");
 
         return cleanName + " " + cleanArtist;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s %s", name, artists.get(0));
     }
 }

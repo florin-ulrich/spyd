@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import okhttp3.*;
 
+import javax.rmi.CORBA.Util;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
@@ -18,8 +19,8 @@ public class SpotifyAPIClient {
     private String accessToken;
     private OkHttpClient client;
 
-    public SpotifyAPIClient(OkHttpClient client, String clientToken) throws Exception{
-        this.client = client;
+    public SpotifyAPIClient(String clientToken) throws Exception{
+        this.client = new OkHttpClient();
         this.clientToken = clientToken;
         getAccessToken();
     }
@@ -86,14 +87,21 @@ public class SpotifyAPIClient {
         for (int i = 0; i < jarr.size(); i++) {
             JsonObject track = jarr.get(i).getAsJsonObject().get("track").getAsJsonObject();
             String songname = track.get("name").getAsString();
+            int duration = track.get("duration_ms").getAsInt()/1000;
             JsonArray artistsJson = track.get("artists").getAsJsonArray();
             List<String> artists = new ArrayList<>();
             for (int j = 0; j < artistsJson.size(); j++) {
                 artists.add(artistsJson.get(j).getAsJsonObject().get("name").getAsString());
             }
-            Song s = new Song(artists, songname);
+            Song s = new Song(artists, songname, duration);
             songs.add(s);
         }
         return songs;
+    }
+
+    public static void main(String[] args) throws Exception{
+        SpotifyAPIClient spotifyAPIClient = new SpotifyAPIClient(Utilities.getSpotifyToken());
+        List<Song> songs = spotifyAPIClient.playListAPICall("2ZERChLsZSC0bqra91OoC4");
+        songs.forEach(e -> System.out.println(e.getDuration()));
     }
 }
