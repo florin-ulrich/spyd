@@ -1,5 +1,7 @@
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -41,6 +43,18 @@ public class Utilities {
         links.forEach(System.out::println);
         YTMP3Converter converter = new ytmp3ccConverter();
         converter.downloadLinksToMp3(links, "C:\\Users\\flori\\OneDrive\\spotifylieder");
+    }
+
+    public static void openWebPage(String url) {
+        try {
+            Desktop.getDesktop().browse(new URL(url).toURI());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String escapeHTML(String s) {
+        return s.replaceAll("&quot;", "\"");
     }
 
     public static void main(String[] args) throws Exception{

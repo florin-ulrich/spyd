@@ -15,6 +15,7 @@ public class YoutubeAPIClient {
 
     private String APIKey;
     private OkHttpClient client;
+    private int tokenIndex;
 
     public YoutubeAPIClient(String APIKey) {
         this.APIKey = APIKey;
@@ -51,7 +52,7 @@ public class YoutubeAPIClient {
             JsonObject result = results.get(i).getAsJsonObject();
             String id = result.getAsJsonObject().get("id").getAsJsonObject().get("videoId").getAsString();
             String link = "https://www.youtube.com/watch?v=" + id;
-            String title = result.get("snippet").getAsJsonObject().get("title").getAsString();
+            String title = Utilities.escapeHTML(result.get("snippet").getAsJsonObject().get("title").getAsString());
             int duration = getDuration(id);
             list.add(new SongMapping.SearchResult(link, title, duration));
         }

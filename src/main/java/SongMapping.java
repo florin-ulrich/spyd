@@ -78,8 +78,8 @@ public class SongMapping {
             if (titleSimple.contains(songname)) score++;
             if (titleSimple.contains(songartist)) score++;
             boolean liveInTitle = songname.contains("live") || songartist.contains("live");
-            if (titleSimple.contains("live") && !liveInTitle) score = 0;
             if (Math.abs(s.getDuration() - duration) <= 5) score += 2;
+            if (titleSimple.contains("live") && !liveInTitle) score = 0;
         }
 
         public String getTitle() {
@@ -120,21 +120,28 @@ public class SongMapping {
     }
 
     public void showEditorInterface() {
-        Label songInfo = new Label(String.format("SONG INFO%nname: %s%nartist: %s%n", song.getName(), song.getFirstArtist()));
-        Label selected = new Label(String.format("CURRENTLY SELECTED%n%s%n", bestMatch));
-        Label l = new Label("choose a better fit");
-        l.setLayoutX(0.5);
+        Label songInfo = new Label(String.format("SONG INFO%nname: %s%nartist: %s", song.getName(), song.getFirstArtist()));
+        Label selected = new Label(String.format("CURRENTLY SELECTED%n%s", bestMatch));
+        Label newChoiceLabel = new Label("choose a better fit");
         Stage stage = new Stage();
         ComboBox<SearchResult> results = new ComboBox<>();
+        VBox vb = VBoxFactory.LargeSpacing();
+        Scene sc = new Scene(vb);
+        Hyperlink showSelected = new Hyperlink(bestMatch.link);
+        VBox selectedInfoContainer = new VBox(selected, showSelected);
+        VBox newChoiceContainer = new VBox(newChoiceLabel, results);
+
+        vb.getChildren().addAll(songInfo, selectedInfoContainer, newChoiceContainer);
         results.getItems().addAll(potentials);
         results.getSelectionModel().select(bestMatch);
+
         results.setOnAction(e -> {
             setBestMatch(results.getValue());
-            selected.setText(String.format("CURRENTLY SELECTED%n%s%n", bestMatch));
+            selected.setText(String.format("CURRENTLY SELECTED%n%s", bestMatch));
+            showSelected.setText(bestMatch.link);
         });
-        VBox vb = new VBox(5, songInfo, selected, l, results);
-        vb.setPadding(new Insets(5));
-        Scene sc = new Scene(vb);
+        showSelected.setOnAction(e -> Utilities.openWebPage(showSelected.getText()));
+
         stage.setScene(sc);
         stage.showAndWait();
     }

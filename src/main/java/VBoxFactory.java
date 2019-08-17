@@ -8,4 +8,10 @@ public class VBoxFactory {
         vb.setPadding(new Insets(5));
         return vb;
     }
+
+    public static VBox LargeSpacing() {
+        VBox vb = new VBox(15);
+        vb.setPadding(new Insets(5));
+        return vb;
+    }
 }
