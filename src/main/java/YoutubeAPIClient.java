@@ -4,7 +4,6 @@ import com.google.gson.JsonParser;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import okhttp3.*;
-import org.openqa.selenium.json.Json;
 
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +40,16 @@ public class YoutubeAPIClient {
                 .build();
         Call call = client.newCall(request);
         Response response = call.execute();
-        return parseResultsFromResponse(response.body().string());
+        if (response.code() == 200) {
+            String responseText = response.body().string();
+            System.out.println(responseText);
+            return parseResultsFromResponse(responseText);
+        }
+        else {
+            System.out.println(response.body().string());
+            APIKey = Utilities.getNextYTToken(tokenIndex++);
+            return searchListAPICall(s);
+        }
     }
 
     private List<SongMapping.SearchResult> parseResultsFromResponse(String response) throws Exception {
@@ -59,8 +67,6 @@ public class YoutubeAPIClient {
         return list;
     }
 
-    private static Pattern durationPattern = Pattern.compile("PT(.*)M(.*)S");
-
     private int getDuration(String id) throws Exception{
         String url = "https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id="
                 + id
@@ -72,25 +78,48 @@ public class YoutubeAPIClient {
         Call call = client.newCall(request);
         Response response = call.execute();
         String responsetext = response.body().string();
-        JsonParser parser = new JsonParser();
-        JsonObject jo = parser.parse(responsetext).getAsJsonObject();
-        String duration =  jo
-                .get("items")
-                .getAsJsonArray()
-                .get(0)
-                .getAsJsonObject()
-                .get("contentDetails")
-                .getAsJsonObject()
-                .get("duration")
-                .getAsString();
-        Matcher m = durationPattern.matcher(duration);
-        m.find();
-        return Integer.parseInt(m.group(1)) * 60 + Integer.parseInt(m.group(2));
+        System.out.println(responsetext);
+        if (response.code() == 200) {
+            JsonParser parser = new JsonParser();
+            JsonObject jo = parser.parse(responsetext).getAsJsonObject();
+            String duration =  jo
+                    .get("items")
+                    .getAsJsonArray()
+                    .get(0)
+                    .getAsJsonObject()
+                    .get("contentDetails")
+                    .getAsJsonObject()
+                    .get("duration")
+                    .getAsString();
+            return parseDuration(duration);
+        }
+        else {
+            System.out.println(responsetext);
+            APIKey = Utilities.getNextYTToken(tokenIndex++);
+            return getDuration(id);
+        }
+    }
+
+    private static Pattern hourPattern = Pattern.compile("(\\d*)H");
+    private static Pattern minutePattern = Pattern.compile("(\\d*)M");
+    private static Pattern secondPattern = Pattern.compile("(\\d*)S");
+
+    private Integer parseDuration(String s) {
+        int i = 0;
+        Matcher hours = hourPattern.matcher(s);
+        Matcher minutes = minutePattern.matcher(s);
+        Matcher seconds = secondPattern.matcher(s);
+        if (hours.find()) i += Integer.parseInt(hours.group(1)) * 3600;
+        if (minutes.find()) i += Integer.parseInt(minutes.group(1)) * 60;
+        if (seconds.find()) i += Integer.parseInt(seconds.group(1));
+        return i;
     }
 
     public static void main(String[] args) throws Exception{
         YoutubeAPIClient yapi = new YoutubeAPIClient(Utilities.getYTToken());
         System.out.println(yapi.getDuration("nefDQvrJusc"));
     }
+
+
 
 }

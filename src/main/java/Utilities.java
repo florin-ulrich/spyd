@@ -1,3 +1,7 @@
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.openqa.selenium.json.Json;
+
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,21 +15,41 @@ import java.util.regex.Pattern;
 
 public class Utilities {
 
+    private static String tokenPath = "C:\\Users\\flori\\OneDrive\\code\\Java\\spyd\\tokens";
+
     public static String getYTToken() {
-        try(BufferedReader br = Files.newBufferedReader(Paths.get("C:\\Users\\flori\\OneDrive\\code\\Java\\spyd\\tokens"))) {
-            return br.readLine();
+        JsonParser parser = new JsonParser();
+        try {
+            String contents = new String(Files.readAllBytes(Paths.get(tokenPath)));
+            return parser.parse(contents).getAsJsonObject().get("youtube").getAsString();
         } catch (IOException e) {
             System.out.println("couldnt find YT - token");
+            System.exit(0);
+        }
+        return null;
+    }
+
+    public static String getNextYTToken(int index) {
+        JsonParser parser = new JsonParser();
+        System.out.println("token index: " + index);
+        try {
+            String contents = new String(Files.readAllBytes(Paths.get(tokenPath)));
+            return parser.parse(contents).getAsJsonObject().get("youtube" + index).getAsString();
+        } catch (IOException e) {
+            System.out.println("couldnt find YT - token");
+            System.exit(0);
         }
         return null;
     }
 
     public static String getSpotifyToken() {
-        try(BufferedReader br = Files.newBufferedReader(Paths.get("C:\\Users\\flori\\OneDrive\\code\\Java\\spyd\\tokens"))) {
-            br.readLine();
-            return br.readLine();
+        JsonParser parser = new JsonParser();
+        try {
+            String contents = new String(Files.readAllBytes(Paths.get(tokenPath)));
+            return parser.parse(contents).getAsJsonObject().get("spotify").getAsString();
         } catch (IOException e) {
-            System.out.println("couldnt find Spotify - token");
+            System.out.println("couldnt find YT - token");
+            System.exit(0);
         }
         return null;
     }
@@ -58,6 +82,8 @@ public class Utilities {
     }
 
     public static void main(String[] args) throws Exception{
-        convertFromFile("C:\\Users\\flori\\OneDrive\\code\\Java\\spyd\\usable");
+        System.out.println(getNextYTToken(0));
+        System.out.println(getNextYTToken(1));
+        System.out.println(getNextYTToken(2));
     }
 }

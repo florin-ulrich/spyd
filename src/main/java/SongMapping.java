@@ -78,8 +78,12 @@ public class SongMapping {
             if (titleSimple.contains(songname)) score++;
             if (titleSimple.contains(songartist)) score++;
             boolean liveInTitle = songname.contains("live") || songartist.contains("live");
-            if (Math.abs(s.getDuration() - duration) <= 5) score += 2;
+            int differenceInDuration = Math.abs(s.getDuration() - duration);
+            if (differenceInDuration <= 5) score += 2;
+
+            // knock out criteria
             if (titleSimple.contains("live") && !liveInTitle) score = 0;
+            if (differenceInDuration > 180) score = 0;
         }
 
         public String getTitle() {
