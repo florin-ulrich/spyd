@@ -5,8 +5,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import okhttp3.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,22 +56,29 @@ public class YoutubeAPIClient {
 
     private List<SongMapping.SearchResult> parseResultsFromResponse(String response) throws Exception {
         JsonParser parser = new JsonParser();
-        JsonArray results = parser.parse(response).getAsJsonObject().get("items").getAsJsonArray();
-        ObservableList<SongMapping.SearchResult> list = FXCollections.observableArrayList();
-        for (int i = 0; i < results.size(); i++) {
-            JsonObject result = results.get(i).getAsJsonObject();
+        JsonArray responseJarr = parser.parse(response).getAsJsonObject().get("items").getAsJsonArray();
+        ObservableList<SongMapping.SearchResult> searchResults = FXCollections.observableArrayList();
+        List<String> ids = new ArrayList<>();
+        for (int i = 0; i < responseJarr.size(); i++) {
+            JsonObject result = responseJarr.get(i).getAsJsonObject();
             String id = result.getAsJsonObject().get("id").getAsJsonObject().get("videoId").getAsString();
             String link = "https://www.youtube.com/watch?v=" + id;
             String title = Utilities.escapeHTML(result.get("snippet").getAsJsonObject().get("title").getAsString());
-            int duration = getDuration(id);
-            list.add(new SongMapping.SearchResult(link, title, duration));
+            ids.add(id);
+            searchResults.add(new SongMapping.SearchResult(link, title));
         }
-        return list;
+        List<Integer> durations = getDurations(ids);
+        for (int i = 0; i < searchResults.size(); i++) {
+            searchResults.get(i).setDuration(durations.get(i));
+        }
+        return searchResults;
     }
 
-    private int getDuration(String id) throws Exception{
+    private List<Integer> getDurations(List<String> ids) throws Exception {
+        StringJoiner sj = new StringJoiner(",");
+        ids.forEach(sj::add);
         String url = "https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id="
-                + id
+                + sj.toString()
                 + "&key="
                 + APIKey;
         Request request = new Request.Builder()
@@ -82,21 +91,13 @@ public class YoutubeAPIClient {
         if (response.code() == 200) {
             JsonParser parser = new JsonParser();
             JsonObject jo = parser.parse(responsetext).getAsJsonObject();
-            String duration =  jo
-                    .get("items")
-                    .getAsJsonArray()
-                    .get(0)
-                    .getAsJsonObject()
-                    .get("contentDetails")
-                    .getAsJsonObject()
-                    .get("duration")
-                    .getAsString();
-            return parseDuration(duration);
+            JsonArray items =  jo.get("items").getAsJsonArray();
+            return parseDurations(items);
         }
         else {
             System.out.println(responsetext);
             APIKey = Utilities.getNextYTToken(tokenIndex++);
-            return getDuration(id);
+            return getDurations(ids);
         }
     }
 
@@ -104,20 +105,34 @@ public class YoutubeAPIClient {
     private static Pattern minutePattern = Pattern.compile("(\\d*)M");
     private static Pattern secondPattern = Pattern.compile("(\\d*)S");
 
-    private Integer parseDuration(String s) {
-        int i = 0;
-        Matcher hours = hourPattern.matcher(s);
-        Matcher minutes = minutePattern.matcher(s);
-        Matcher seconds = secondPattern.matcher(s);
-        if (hours.find()) i += Integer.parseInt(hours.group(1)) * 3600;
-        if (minutes.find()) i += Integer.parseInt(minutes.group(1)) * 60;
-        if (seconds.find()) i += Integer.parseInt(seconds.group(1));
-        return i;
+    private List<Integer> parseDurations(JsonArray items) {
+        List<Integer> durations = new ArrayList<>();
+        for (int i = 0; i < items.size(); i++) {
+            String duration = items
+                    .get(i)
+                    .getAsJsonObject()
+                    .get("contentDetails")
+                    .getAsJsonObject()
+                    .get("duration")
+                    .getAsString();
+            int j = 0;
+            Matcher hours = hourPattern.matcher(duration);
+            Matcher minutes = minutePattern.matcher(duration);
+            Matcher seconds = secondPattern.matcher(duration);
+            if (hours.find()) j += Integer.parseInt(hours.group(1)) * 3600;
+            if (minutes.find()) j += Integer.parseInt(minutes.group(1)) * 60;
+            if (seconds.find()) j += Integer.parseInt(seconds.group(1));
+            durations.add(j);
+        }
+        return durations;
     }
 
     public static void main(String[] args) throws Exception{
         YoutubeAPIClient yapi = new YoutubeAPIClient(Utilities.getYTToken());
-        System.out.println(yapi.getDuration("nefDQvrJusc"));
+        ArrayList<String> asdasd = new ArrayList<>();
+        asdasd.add("nefDQvrJusc");
+        asdasd.add("9hVD2XcXSZ0");
+        yapi.getDurations(asdasd).forEach(System.out::println);
     }
 
 

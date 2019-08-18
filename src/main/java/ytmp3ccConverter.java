@@ -42,24 +42,6 @@ public class ytmp3ccConverter implements YTMP3Converter {
         downloadLink.click();
     }
 
-    private static WebElement waitForElement(By by, WebDriver driver) {
-        while (true) {
-            try {
-                return driver.findElement(by);
-            } catch (Exception e) {
-                waitAround(2000);
-            }
-        }
-    }
-
-    private static void waitAround(int ms) {
-        try {
-            Thread.sleep(ms);
-        } catch (InterruptedException e) {
-            // le lenny face
-        }
-    }
-
     private WebDriver getDefaultDriver(String downloadPath) {
         System.setProperty("webdriver.chrome.driver", "D:\\temporary_quote_on_quote\\chromedriver.exe");
         HashMap<String, Object> chromePrefs = new HashMap<>();

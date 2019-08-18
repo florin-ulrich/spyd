@@ -13,11 +13,10 @@ import java.util.regex.Pattern;
 public class Test {
 
     public static void main(String[] args) throws Exception{
-        SpotifyAPIClient spotify = new SpotifyAPIClient(Utilities.getSpotifyToken());
-        YoutubeAPIClient youtube = new YoutubeAPIClient(Utilities.getYTToken());
-        List<Song> songs = spotify.playListAPICall("2nxIdLzC12Zwt7vxLo1rKU");
-        HashMap<Song, List<SongMapping.SearchResult>> results = youtube.searchSongList(songs);
-        List<SongMapping> mappings = SongMapping.mapSearchResultsToSongs(results);
-        mappings.forEach(SongMapping::printComponents);
+        FileInputStream fis = new FileInputStream("C:\\Users\\flori\\OneDrive\\code\\Java\\spyd\\finalmappings\\20190818_2139.ser");
+        ObjectInputStream ois = new ObjectInputStream(fis);
+        HashMap<Song, String> songs = (HashMap<Song, String>) ois.readObject();
+        songs.keySet().forEach(System.out::println);
+        songs.values().forEach(System.out::println);
     }
 }

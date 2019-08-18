@@ -16,6 +16,11 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -42,7 +47,7 @@ public class spydApp extends Application {
     }
 
     private Stage getMainstage() {
-        TextField playlistID = new TextField("https://open.spotify.com/playlist/2ZERChLsZSC0bqra91OoC4");
+        TextField playlistID = new TextField("https://open.spotify.com/playlist/2nxIdLzC12Zwt7vxLo1rKU");
         TextField downloadPath = new TextField("C:\\Users\\flori\\OneDrive\\code\\Java\\spyd\\testdownloads");
         Button convert = new Button("convert");
         Button explorer = new Button("...");
@@ -70,10 +75,7 @@ public class spydApp extends Application {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }
-            else {
-                showErrorMessage("invalid path");
-            }
+            } else showErrorMessage("invalid path");
         });
         explorer.setOnAction(a -> {
             File file = dc.showDialog(stage);
@@ -118,9 +120,15 @@ public class spydApp extends Application {
         Button convert = new Button("convert with these choices");
         convert.setOnAction(e -> {
             stage.close();
-            ytmp3Converter.downloadLinksToMp3(mappings
+            serializeFinalMapping(
+                    t.getItems()
                     .stream()
-                    .map(SongMapping::getBestMatchLink)
+                    .map(w -> w.sm)
+                    .collect(Collectors.toList()));
+            ytmp3Converter.downloadLinksToMp3(
+                    t.getItems()
+                    .stream()
+                    .map(w -> w.sm.getBestMatchLink())
                     .collect(Collectors.toList())
                     , downloadPath);
         });
@@ -132,29 +140,44 @@ public class spydApp extends Application {
         return stage;
     }
 
+    private void serializeFinalMapping(List<SongMapping> mappings) {
+        HashMap<Song, String> finalMapping = new HashMap<>();
+        mappings.forEach(m -> finalMapping.put(m.getSong(), m.getBestMatchLink()));
+        String filePath = "C:\\Users\\flori\\OneDrive\\code\\Java\\spyd\\finalmappings\\"
+                + new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date()) + ".ser";
+        try (FileOutputStream fileOut = new FileOutputStream(filePath);
+             ObjectOutputStream out = new ObjectOutputStream(fileOut)){
+            out.writeObject(finalMapping);
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
     private static TableView<FXMappingWrapper> createTable(List<SongMapping> mappings) {
 
         TableColumn<FXMappingWrapper, String> songname = new TableColumn<>("Song");
         TableColumn<FXMappingWrapper, String> bestMatchName = new TableColumn<>("Match");
         TableColumn<FXMappingWrapper, Number> bestMatchScore = new TableColumn<>("Score");
         TableColumn<FXMappingWrapper, Hyperlink> edit = new TableColumn<>("");
+        TableColumn<FXMappingWrapper, Hyperlink> delete = new TableColumn<>("");
 
         songname.setCellValueFactory(new PropertyValueFactory<>("songname"));
         bestMatchName.setCellValueFactory(p -> p.getValue().bestMatchName);
         bestMatchScore.setCellValueFactory(p -> p.getValue().bestMatchScore);
         edit.setCellValueFactory(new PropertyValueFactory<>("edit"));
+        delete.setCellValueFactory(new PropertyValueFactory<>("delete"));
 
         TableView<FXMappingWrapper> table = new TableView<>();
-        table.getColumns().addAll(songname, bestMatchName, bestMatchScore, edit);
+        table.getColumns().addAll(songname, bestMatchName, bestMatchScore, edit, delete);
         table.setItems(wrapMappings(mappings));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         table.setPrefWidth(700);
-
         return table;
     }
 
     private static ObservableList<FXMappingWrapper> wrapMappings(List<SongMapping> mappings) {
-        return FXCollections.observableList(mappings.stream().map(FXMappingWrapper::new).collect(Collectors.toList()));
+        ObservableList<FXMappingWrapper> wrappedMappings
+                = FXCollections.observableList(mappings.stream().map(FXMappingWrapper::new).collect(Collectors.toList()));
+        wrappedMappings.forEach(m -> m.delete.setOnAction(a -> wrappedMappings.remove(m)));
+        return wrappedMappings;
     }
 
     public static class FXMappingWrapper {
@@ -172,6 +195,7 @@ public class spydApp extends Application {
             songname = sm.getSong().getQueryString();
             bestMatchName = sm.bestMatchNameProperty();
             bestMatchScore = sm.bestMatchScoreProperty();
+            delete = new Hyperlink("remove");
         }
 
         public Hyperlink getEdit() {
